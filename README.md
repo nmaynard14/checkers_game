@@ -222,7 +222,14 @@ This project was created using [Cursor](https://cursor.sh), an AI-powered code e
 
 This project is provided as-is for educational and personal use.
 
----
+## Keeping the README Updated
 
-**Note:** This README should be updated whenever significant changes are made to the project structure, build system, dependencies, or features. Please keep the documentation current with the codebase.
+This README should be updated whenever significant changes are made to:
+- **Project structure** (new files, directories, or reorganization)
+- **Build system** (Makefile changes, new dependencies, compilation flags)
+- **Dependencies** (new libraries, version requirements, platform-specific needs)
+- **Features** (new functionality, removed features, gameplay changes)
+- **Platform support** (new platforms, platform-specific fixes)
+
+A pre-commit hook is configured to remind you to update the README when source files are modified.
 
