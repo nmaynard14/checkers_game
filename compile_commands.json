@@ -1,0 +1,28 @@
+[
+    {
+        "directory": "/home/nick/VSCode_Projects/CursorPlayground",
+        "command": "g++ -std=c++17 -Wall -Wextra -O2 -I/usr/include/SDL2 -D_REENTRANT -Iinclude -c src/main.cpp -o build/main.o",
+        "file": "src/main.cpp"
+    },
+    {
+        "directory": "/home/nick/VSCode_Projects/CursorPlayground",
+        "command": "g++ -std=c++17 -Wall -Wextra -O2 -I/usr/include/SDL2 -D_REENTRANT -Iinclude -c src/GameLogic.cpp -o build/GameLogic.o",
+        "file": "src/GameLogic.cpp"
+    },
+    {
+        "directory": "/home/nick/VSCode_Projects/CursorPlayground",
+        "command": "g++ -std=c++17 -Wall -Wextra -O2 -I/usr/include/SDL2 -D_REENTRANT -Iinclude -c src/CheckersAI.cpp -o build/CheckersAI.o",
+        "file": "src/CheckersAI.cpp"
+    },
+    {
+        "directory": "/home/nick/VSCode_Projects/CursorPlayground",
+        "command": "g++ -std=c++17 -Wall -Wextra -O2 -I/usr/include/SDL2 -D_REENTRANT -Iinclude -c src/SoundManager.cpp -o build/SoundManager.o",
+        "file": "src/SoundManager.cpp"
+    },
+    {
+        "directory": "/home/nick/VSCode_Projects/CursorPlayground",
+        "command": "g++ -std=c++17 -Wall -Wextra -O2 -I/usr/include/SDL2 -D_REENTRANT -Iinclude -c src/Renderer.cpp -o build/Renderer.o",
+        "file": "src/Renderer.cpp"
+    }
+]
+

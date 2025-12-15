@@ -1,0 +1,17 @@
+CompileFlags:
+  Add:
+    - -Iinclude
+    - -Isrc
+    - -I/usr/include/SDL2
+    - -D_REENTRANT
+    - -std=c++17
+  Remove:
+    - -W*
+
+Diagnostics:
+  UnusedIncludes: None
+  MissingIncludes: None
+
+Index:
+  Background: Build
+

@@ -1,0 +1,19 @@
+# Build artifacts
+build/
+bin/
+
+# IDE files
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Compiled binaries
+*.o
+*.exe
+*.out
+
