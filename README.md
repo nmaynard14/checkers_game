@@ -1,6 +1,6 @@
 # Checkers Game
 
-A classic 8x8 checkers game built with C++ and SDL2, featuring 3D graphics rendered with OpenGL, an AI opponent, sound effects, and a modern graphical interface.
+A classic 8x8 checkers game built with C++ and Raylib, featuring 3D graphics, an AI opponent, sound effects, and a modern graphical interface.
 
 ## Description
 
@@ -19,10 +19,7 @@ This is a fully-featured checkers game where you play as the Teal player against
 ### Prerequisites
 
 - C++17 compatible compiler
-- SDL2 development libraries
-- SDL2_ttf development libraries
-- SDL2_mixer development libraries
-- OpenGL development libraries (libGL, libGLU)
+- Raylib development library (version 4.0 or later)
 
 ### Linux
 
@@ -31,17 +28,27 @@ This is a fully-featured checkers game where you play as the Teal player against
 **Ubuntu/Debian:**
 ```bash
 sudo apt update
-sudo apt install build-essential libsdl2-dev libsdl2-ttf-dev libsdl2-mixer-dev libgl1-mesa-dev libglu1-mesa-dev
+sudo apt install build-essential libraylib-dev
+```
+
+If `libraylib-dev` is not available in your repositories, you can build Raylib from source:
+```bash
+git clone https://github.com/raysan5/raylib.git
+cd raylib/src
+make PLATFORM=PLATFORM_DESKTOP
+sudo make install
 ```
 
 **Fedora/RHEL:**
 ```bash
-sudo dnf install gcc-c++ SDL2-devel SDL2_ttf-devel SDL2_mixer-devel mesa-libGL-devel mesa-libGLU-devel
+sudo dnf install gcc-c++ raylib-devel
 ```
+
+If not available, build from source (see Ubuntu instructions above).
 
 **Arch Linux:**
 ```bash
-sudo pacman -S base-devel sdl2 sdl2_ttf sdl2_mixer mesa glu
+sudo pacman -S base-devel raylib
 ```
 
 #### Compilation
@@ -64,9 +71,8 @@ The executable will be created in `bin/checkers_sdl`.
 
 Using Homebrew (recommended):
 ```bash
-brew install sdl2 sdl2_ttf sdl2_mixer
+brew install raylib
 ```
-Note: OpenGL is included with macOS by default.
 
 #### Compilation
 
@@ -203,11 +209,7 @@ Alternatively, place `demo.mp3` in the `assets/` directory to use a single sound
 
 ### Libraries
 
-- **SDL2** - Cross-platform development library for low-level access to audio, keyboard, mouse, joystick, and graphics hardware
-- **SDL2_ttf** - TrueType font rendering library for SDL2
-- **SDL2_mixer** - Multi-channel audio mixer library for SDL2
-- **OpenGL** - 3D graphics rendering API used for rendering the game board and pieces in 3D
-- **GLU** - OpenGL Utility Library for additional 3D rendering functions
+- **Raylib** - Simple and easy-to-use library for game development with built-in support for 3D graphics, audio, input handling, and text rendering. Raylib provides a clean, modern API that simplifies game development compared to lower-level libraries like SDL2 + OpenGL.
 
 ### Sound Effects
 

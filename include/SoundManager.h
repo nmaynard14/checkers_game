@@ -1,23 +1,23 @@
 #pragma once
 
-#include <SDL2/SDL_mixer.h>
+#include <raylib.h>
 
 /**
  * @brief Manages sound effects for the checkers game.
- * Handles loading and playing MP3 sound files. Supports a demo.mp3 override
- * that will be used for all sound effects if present.
+ * Handles loading and playing sound files using Raylib audio.
+ * Supports a demo.mp3 override that will be used for all sound effects if present.
  */
 class SoundManager {
 public:
     /**
      * @brief Constructs a new SoundManager and initializes the audio system.
-     * Attempts to open the SDL_mixer audio device and load sound effect files.
+     * Attempts to initialize Raylib audio and load sound effect files.
      * If demo.mp3 exists, it will be used for all sound effects.
      */
     SoundManager();
 
     /**
-     * @brief Destructor that cleans up all loaded sound chunks and closes the audio system.
+     * @brief Destructor that cleans up all loaded sounds and closes the audio system.
      */
     ~SoundManager();
 
@@ -53,13 +53,12 @@ public:
 
 private:
     bool initialized;
-    Mix_Chunk *demo;      // optional shared demo sound
-    Mix_Chunk *move;
-    Mix_Chunk *capture;
-    Mix_Chunk *win;
-    Mix_Chunk *lose;
+    Sound demo;      // optional shared demo sound
+    Sound move;
+    Sound capture;
+    Sound win;
+    Sound lose;
 
     void loadSounds();
-    void playSound(Mix_Chunk *chunk);
+    void playSound(Sound sound);
 };
-

@@ -1,28 +1,26 @@
-// Simple 8x8 checkers game using SDL2 (+ SDL2_ttf for numeric UI text)
+// Simple 8x8 checkers game using Raylib for 3D graphics
 // Teal vs Purple pieces, with a sidebar showing remaining piece counts and AI opponent.
 
-#include <SDL2/SDL.h>
-#include <cmath>
 #include <iostream>
-#include <string>
 
 #include "GameLogic.h"
 #include "CheckersAI.h"
 #include "SoundManager.h"
 #include "Renderer.h"
 
-static constexpr int CELL_SIZE = 80;  // pixels per cell (must match Renderer::CELL_SIZE)
-
 /**
  * @brief Handles mouse click events on the game board.
  * Manages piece selection and move execution for the human player.
  * @param state The current game state (will be modified if a move is made)
- * @param mouseX The X coordinate of the mouse click in pixels
- * @param mouseY The Y coordinate of the mouse click in pixels
+ * @param renderer The renderer for coordinate conversion
  * @param wasCapture Output parameter set to true if the move resulted in a capture, false otherwise
  * @return true if a move was successfully executed, false otherwise (selection change or invalid click)
  */
-bool handleClick(GameState &state, Renderer &renderer, int mouseX, int mouseY, bool &wasCapture) {
+bool handleClick(GameState &state, Renderer &renderer, bool &wasCapture) {
+    Vector2 mousePos = renderer.getMousePosition();
+    int mouseX = (int)mousePos.x;
+    int mouseY = (int)mousePos.y;
+    
     // Convert screen coordinates to board coordinates using 3D picking
     int row, col;
     renderer.screenToBoard(mouseX, mouseY, row, col);
@@ -61,12 +59,11 @@ bool handleClick(GameState &state, Renderer &renderer, int mouseX, int mouseY, b
     return false;
 }
 
-
 int main(int argc, char *argv[]) {
     (void)argc;
     (void)argv;
 
-    // Initialize renderer (handles SDL video and TTF)
+    // Initialize renderer (handles Raylib window and 3D rendering)
     Renderer renderer;
     if (!renderer.initialize()) {
         return 1;
@@ -80,84 +77,124 @@ int main(int argc, char *argv[]) {
 
     CheckersAI ai;
     GameResult result = GameResult::Ongoing;
-
+    bool showPopup = false;
 
     bool running = true;
-    while (running) {
-        SDL_Event e;
-        while (SDL_PollEvent(&e)) {
-            if (e.type == SDL_QUIT) {
-                running = false;
-            } else if (e.type == SDL_MOUSEBUTTONDOWN &&
-                       e.button.button == SDL_BUTTON_LEFT) {
-                // Clicks in popup window
-                if (renderer.isPopupActive() &&
-                    e.button.windowID == renderer.getPopupWindowID()) {
-                    int mx = e.button.x;
-                    int my = e.button.y;
-                    if (renderer.isNewGameButton(mx, my)) {
-                        // New game
-                        initBoard(state);
-                        state.currentPlayer = TealMan;
-                        state.selectedRow = state.selectedCol = -1;
-                        result = GameResult::Ongoing;
-                        renderer.closePopup();
-                    } else if (renderer.isExitButton(mx, my)) {
-                        running = false;
+    while (running && !renderer.shouldClose()) {
+        // Handle input
+        if (renderer.isMouseButtonPressed()) {
+            if (showPopup) {
+                // Handle popup clicks (simplified - just close on click for now)
+                // In a full implementation, you'd check button bounds
+                showPopup = false;
+            } else if (result == GameResult::Ongoing && state.currentPlayer == TealMan) {
+                bool humanCapture = false;
+                bool movedByHuman = handleClick(state, renderer, humanCapture);
+                if (movedByHuman) {
+                    if (!humanCapture)
+                        soundManager.playMove();
+                    else
+                        soundManager.playCapture();
+                    
+                    // After human move, check if AI has any pieces or moves.
+                    int tealCount = 0, purpleCount = 0;
+                    countPieces(state, tealCount, purpleCount);
+                    if (purpleCount == 0 || !hasAnyMoves(state, PurpleMan)) {
+                        result = GameResult::TealWin;
+                        soundManager.playWin();
+                        showPopup = true;
+                        continue;
                     }
-                } else if (result == GameResult::Ongoing && state.currentPlayer == TealMan &&
-                           e.button.windowID == renderer.getMainWindowID()) {
-                    bool humanCapture = false;
-                    bool movedByHuman = handleClick(state, renderer, e.button.x, e.button.y, humanCapture);
-                    if (movedByHuman) {
-                        if (!humanCapture)
+
+                    // Switch to AI (Purple)
+                    state.currentPlayer = PurpleMan;
+
+                    int sr, sc, tr, tc;
+                    if (ai.chooseMove(state, sr, sc, tr, tc)) {
+                        bool aiCapture = false;
+                        applyMove(state, sr, sc, tr, tc, aiCapture);
+                        if (!aiCapture)
                             soundManager.playMove();
                         else
                             soundManager.playCapture();
-                        // After human move, check if AI has any pieces or moves.
-                        int tealCount = 0, purpleCount = 0;
-                        countPieces(state, tealCount, purpleCount);
-                        if (purpleCount == 0 || !hasAnyMoves(state, PurpleMan)) {
-                            result = GameResult::TealWin;
-                            soundManager.playWin();
-                            renderer.openPopup(result);
-                            continue;
-                        }
+                    }
 
-                        // Switch to AI (Purple)
-                        state.currentPlayer = PurpleMan;
-
-                        int sr, sc, tr, tc;
-                        if (ai.chooseMove(state, sr, sc, tr, tc)) {
-                            bool aiCapture = false;
-                            applyMove(state, sr, sc, tr, tc, aiCapture);
-                            if (!aiCapture)
-                                soundManager.playMove();
-                            else
-                                soundManager.playCapture();
-                        }
-
-                        state.selectedRow = -1;
-                        state.selectedCol = -1;
-                        // After AI move, check if player has any pieces or moves.
-                        countPieces(state, tealCount, purpleCount);
-                        if (tealCount == 0 || !hasAnyMoves(state, TealMan)) {
-                            result = GameResult::PurpleWin;
-                            soundManager.playLose();
-                            renderer.openPopup(result);
-                        } else {
-                            state.currentPlayer = TealMan;
-                        }
+                    state.selectedRow = -1;
+                    state.selectedCol = -1;
+                    
+                    // After AI move, check if player has any pieces or moves.
+                    countPieces(state, tealCount, purpleCount);
+                    if (tealCount == 0 || !hasAnyMoves(state, TealMan)) {
+                        result = GameResult::PurpleWin;
+                        soundManager.playLose();
+                        showPopup = true;
+                    } else {
+                        state.currentPlayer = TealMan;
                     }
                 }
             }
         }
 
+        // Render game
         renderer.renderGame(state);
-        if (renderer.isPopupActive()) {
-            renderer.renderPopup(result);
+        
+        // Render popup overlay if needed
+        if (showPopup) {
+            renderer.beginDrawing();
+            // Draw semi-transparent overlay
+            DrawRectangle(0, 0, 800, 800, (Color){0, 0, 0, 180});
+            
+            // Draw popup box
+            int popupWidth = 400;
+            int popupHeight = 220;
+            int popupX = (800 - popupWidth) / 2;
+            int popupY = (800 - popupHeight) / 2;
+            
+            DrawRectangle(popupX, popupY, popupWidth, popupHeight, (Color){30, 30, 30, 255});
+            DrawRectangleLines(popupX, popupY, popupWidth, popupHeight, WHITE);
+            
+            // Draw message
+            const char* msg = (result == GameResult::TealWin) ? "You Win!" : "You Lose!";
+            int textWidth = MeasureText(msg, 40);
+            DrawText(msg, popupX + (popupWidth - textWidth) / 2, popupY + 40, 40, YELLOW);
+            
+            // Draw buttons
+            int btnY = popupY + popupHeight - 70;
+            int btnW = 140;
+            int btnH = 40;
+            
+            // New Game button
+            DrawRectangle(popupX + 50, btnY, btnW, btnH, (Color){70, 70, 70, 255});
+            DrawRectangleLines(popupX + 50, btnY, btnW, btnH, WHITE);
+            int ngTextWidth = MeasureText("New Game", 20);
+            DrawText("New Game", popupX + 50 + (btnW - ngTextWidth) / 2, btnY + 10, 20, WHITE);
+            
+            // Exit button
+            DrawRectangle(popupX + 210, btnY, btnW, btnH, (Color){70, 70, 70, 255});
+            DrawRectangleLines(popupX + 210, btnY, btnW, btnH, WHITE);
+            int exTextWidth = MeasureText("Exit", 20);
+            DrawText("Exit", popupX + 210 + (btnW - exTextWidth) / 2, btnY + 10, 20, WHITE);
+            
+            // Handle button clicks
+            Vector2 mousePos = GetMousePosition();
+            if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
+                if (mousePos.x >= popupX + 50 && mousePos.x <= popupX + 50 + btnW &&
+                    mousePos.y >= btnY && mousePos.y <= btnY + btnH) {
+                    // New Game
+                    initBoard(state);
+                    state.currentPlayer = TealMan;
+                    state.selectedRow = state.selectedCol = -1;
+                    result = GameResult::Ongoing;
+                    showPopup = false;
+                } else if (mousePos.x >= popupX + 210 && mousePos.x <= popupX + 210 + btnW &&
+                           mousePos.y >= btnY && mousePos.y <= btnY + btnH) {
+                    // Exit
+                    running = false;
+                }
+            }
+            
+            renderer.endDrawing();
         }
-        SDL_Delay(10);
     }
 
     return 0;

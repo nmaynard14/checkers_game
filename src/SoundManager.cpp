@@ -4,16 +4,17 @@
 
 /**
  * @brief Constructs a new SoundManager and initializes the audio system.
- * Attempts to open the SDL_mixer audio device and load sound effect files.
+ * Attempts to initialize Raylib audio and load sound effect files.
  * If demo.mp3 exists, it will be used for all sound effects.
  */
 SoundManager::SoundManager()
-    : initialized(false), demo(nullptr), move(nullptr),
-      capture(nullptr), win(nullptr), lose(nullptr)
+    : initialized(false)
 {
-    // Initialize audio (SDL_mixer)
-    if (Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 2048) < 0) {
-        std::cerr << "Mix_OpenAudio Error: " << Mix_GetError() << "\n";
+    // Initialize Raylib audio
+    InitAudioDevice();
+    
+    if (!IsAudioDeviceReady()) {
+        std::cerr << "Failed to initialize audio device\n";
         return;
     }
 
@@ -22,21 +23,21 @@ SoundManager::SoundManager()
 }
 
 /**
- * @brief Destructor that cleans up all loaded sound chunks and closes the audio system.
+ * @brief Destructor that cleans up all loaded sounds and closes the audio system.
  */
 SoundManager::~SoundManager() {
-    // Free sound chunks
-    if (demo) {
-        Mix_FreeChunk(demo);
+    // Unload sounds
+    if (IsSoundReady(demo)) {
+        UnloadSound(demo);
     } else {
-        if (move)    Mix_FreeChunk(move);
-        if (capture) Mix_FreeChunk(capture);
-        if (win)     Mix_FreeChunk(win);
-        if (lose)    Mix_FreeChunk(lose);
+        if (IsSoundReady(move))    UnloadSound(move);
+        if (IsSoundReady(capture)) UnloadSound(capture);
+        if (IsSoundReady(win))     UnloadSound(win);
+        if (IsSoundReady(lose))    UnloadSound(lose);
     }
 
     if (initialized) {
-        Mix_CloseAudio();
+        CloseAudioDevice();
     }
 }
 
@@ -47,31 +48,39 @@ SoundManager::~SoundManager() {
  */
 void SoundManager::loadSounds() {
     // If demo.mp3 exists and loads, use it for all sound effects.
-    demo = Mix_LoadWAV("assets/demo.mp3");
-    if (demo) {
-        move    = demo;
-        capture = demo;
-        win     = demo;
-        lose    = demo;
-    } else {
-        // Otherwise, load individual MP3 sound effects.
-        move    = Mix_LoadWAV("assets/move.mp3");
-        capture = Mix_LoadWAV("assets/capture.mp3");
-        win     = Mix_LoadWAV("assets/win.mp3");
-        lose    = Mix_LoadWAV("assets/lose.mp3");
+    if (FileExists("assets/demo.mp3")) {
+        demo = LoadSound("assets/demo.mp3");
+        if (IsSoundReady(demo)) {
+            std::cout << "Using demo.mp3 for all sound effects\n";
+            return;
+        }
+    }
+
+    // Otherwise, load individual sound files
+    if (FileExists("assets/move.mp3")) {
+        move = LoadSound("assets/move.mp3");
+    }
+    if (FileExists("assets/capture.mp3")) {
+        capture = LoadSound("assets/capture.mp3");
+    }
+    if (FileExists("assets/win.mp3")) {
+        win = LoadSound("assets/win.mp3");
+    }
+    if (FileExists("assets/lose.mp3")) {
+        lose = LoadSound("assets/lose.mp3");
     }
 }
 
 /**
- * @brief Internal helper function to play a sound chunk.
- * Stops any currently playing sound before playing the new one.
- * @param chunk The sound chunk to play, or nullptr to do nothing
+ * @brief Plays a sound effect, stopping any currently playing sound first.
+ * @param sound The sound to play
  */
-void SoundManager::playSound(Mix_Chunk *chunk) {
-    if (!chunk) return;
-    // Stop any currently playing sound effect
-    Mix_HaltChannel(-1);
-    Mix_PlayChannel(-1, chunk, 0);
+void SoundManager::playSound(Sound sound) {
+    if (!IsSoundReady(sound)) return;
+    
+    // Stop all sounds and play the new one
+    StopSoundMulti();
+    PlaySound(sound);
 }
 
 /**
@@ -79,7 +88,11 @@ void SoundManager::playSound(Mix_Chunk *chunk) {
  * Stops any currently playing sound before playing the new one.
  */
 void SoundManager::playMove() {
-    playSound(move);
+    if (IsSoundReady(demo)) {
+        playSound(demo);
+    } else if (IsSoundReady(move)) {
+        playSound(move);
+    }
 }
 
 /**
@@ -87,7 +100,11 @@ void SoundManager::playMove() {
  * Stops any currently playing sound before playing the new one.
  */
 void SoundManager::playCapture() {
-    playSound(capture);
+    if (IsSoundReady(demo)) {
+        playSound(demo);
+    } else if (IsSoundReady(capture)) {
+        playSound(capture);
+    }
 }
 
 /**
@@ -95,7 +112,11 @@ void SoundManager::playCapture() {
  * Stops any currently playing sound before playing the new one.
  */
 void SoundManager::playWin() {
-    playSound(win);
+    if (IsSoundReady(demo)) {
+        playSound(demo);
+    } else if (IsSoundReady(win)) {
+        playSound(win);
+    }
 }
 
 /**
@@ -103,6 +124,9 @@ void SoundManager::playWin() {
  * Stops any currently playing sound before playing the new one.
  */
 void SoundManager::playLose() {
-    playSound(lose);
+    if (IsSoundReady(demo)) {
+        playSound(demo);
+    } else if (IsSoundReady(lose)) {
+        playSound(lose);
+    }
 }
-
