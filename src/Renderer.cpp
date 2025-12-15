@@ -53,9 +53,9 @@ void Renderer::updateCamera(bool isTealActive) {
     float cameraZDist = cameraDistance * std::cos(angleRad);
     
     // Position camera behind active player
-    // Teal (top): camera behind = positive Z (looking toward negative Z)
-    // Purple (bottom): camera behind = negative Z (looking toward positive Z)
-    float cameraZ = isTealActive ? cameraZDist : -cameraZDist;
+    // Teal (bottom): camera behind = negative Z (looking toward positive Z)
+    // Purple (top): camera behind = positive Z (looking toward negative Z)
+    float cameraZ = isTealActive ? -cameraZDist : cameraZDist;
     
     camera.position = (Vector3){0.0f, cameraY, cameraZ};
     camera.target = (Vector3){0.0f, 0.0f, 0.0f};
@@ -267,7 +267,9 @@ void Renderer::screenToBoard(int mouseX, int mouseY, int &outRow, int &outCol, b
     float angleRad = cameraAngle * M_PI / 180.0f;
     float cameraY = cameraDistance * std::sin(angleRad);
     float cameraZDist = cameraDistance * std::cos(angleRad);
-    float cameraZ = isTealActive ? cameraZDist : -cameraZDist;
+    // Teal (bottom): camera behind = negative Z (looking toward positive Z)
+    // Purple (top): camera behind = positive Z (looking toward negative Z)
+    float cameraZ = isTealActive ? -cameraZDist : cameraZDist;
     viewportCamera.position = (Vector3){0.0f, cameraY, cameraZ};
     viewportCamera.target = (Vector3){0.0f, 0.0f, 0.0f};
     
@@ -345,4 +347,69 @@ Vector2 Renderer::getMousePosition() const {
  */
 bool Renderer::isMouseButtonPressed() const {
     return IsMouseButtonPressed(MOUSE_BUTTON_LEFT);
+}
+
+/**
+ * @brief Renders the difficulty selection menu.
+ * @param selectedDifficulty The currently selected difficulty (0-2 for Easy, Medium, Hard)
+ * @return The selected difficulty index, or -1 if none selected
+ */
+int Renderer::renderDifficultyMenu(int selectedDifficulty) {
+    beginDrawing();
+    
+    ClearBackground((Color){51, 51, 64, 255});  // Dark blue-grey background
+    
+    // Draw title
+    const char* title = "Select Difficulty";
+    int titleWidth = MeasureText(title, 50);
+    DrawText(title, (WINDOW_WIDTH - titleWidth) / 2, 150, 50, YELLOW);
+    
+    // Difficulty options
+    const char* difficulties[] = {"Easy", "Medium", "Hard"};
+    const char* descriptions[] = {
+        "AI makes best moves 30% of the time",
+        "AI makes best moves 60% of the time",
+        "AI makes best moves 100% of the time"
+    };
+    
+    int buttonWidth = 200;
+    int buttonHeight = 80;
+    int buttonSpacing = 30;
+    int startY = 280;
+    int startX = (WINDOW_WIDTH - buttonWidth) / 2;
+    
+    int selectedIndex = -1;
+    Vector2 mousePos = GetMousePosition();
+    
+    for (int i = 0; i < 3; ++i) {
+        int buttonY = startY + i * (buttonHeight + buttonSpacing);
+        bool isHovered = (mousePos.x >= startX && mousePos.x <= startX + buttonWidth &&
+                         mousePos.y >= buttonY && mousePos.y <= buttonY + buttonHeight);
+        bool isSelected = (selectedDifficulty == i);
+        
+        // Button background
+        Color buttonColor = isSelected ? (Color){100, 150, 200, 255} : 
+                           isHovered ? (Color){80, 80, 100, 255} : 
+                           (Color){60, 60, 80, 255};
+        DrawRectangle(startX, buttonY, buttonWidth, buttonHeight, buttonColor);
+        DrawRectangleLines(startX, buttonY, buttonWidth, buttonHeight, WHITE);
+        
+        // Difficulty name
+        int textWidth = MeasureText(difficulties[i], 30);
+        DrawText(difficulties[i], startX + (buttonWidth - textWidth) / 2, 
+                 buttonY + 15, 30, WHITE);
+        
+        // Description
+        int descWidth = MeasureText(descriptions[i], 18);
+        DrawText(descriptions[i], startX + (buttonWidth - descWidth) / 2, 
+                 buttonY + 50, 18, (Color){200, 200, 200, 255});
+        
+        // Check if clicked
+        if (isHovered && IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
+            selectedIndex = i;
+        }
+    }
+    
+    endDrawing();
+    return selectedIndex;
 }

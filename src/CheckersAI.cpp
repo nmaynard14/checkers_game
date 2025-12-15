@@ -32,10 +32,24 @@ int evaluatePosition(const GameState &state) {
 
 /**
  * @brief Constructs a new CheckersAI instance.
+ * @param difficulty The difficulty level (Easy, Medium, or Hard)
  * Initializes the random number generator used for move selection.
  */
-CheckersAI::CheckersAI()
-    : rng(std::random_device{}()) {}
+CheckersAI::CheckersAI(AIDifficulty difficulty)
+    : rng(std::random_device{}()), difficulty(difficulty) {
+    // Set optimal move chance based on difficulty
+    switch (difficulty) {
+        case AIDifficulty::Easy:
+            optimalMoveChance = 0.30f;  // 30% optimal moves
+            break;
+        case AIDifficulty::Medium:
+            optimalMoveChance = 0.60f;  // 60% optimal moves
+            break;
+        case AIDifficulty::Hard:
+            optimalMoveChance = 1.0f;   // 100% optimal moves
+            break;
+    }
+}
 
 /**
  * @brief Chooses a move for the Purple player based on the current game state.
@@ -107,8 +121,8 @@ bool CheckersAI::chooseMove(const GameState &state,
     std::uniform_int_distribution<std::size_t> pickAll(0, allMoves.size() - 1);
 
     Move chosen;
-    if (!bestMoves.empty() && prob(rng) < 0.5) {
-        // 50% of the time, pick from the best moves.
+    if (!bestMoves.empty() && prob(rng) < optimalMoveChance) {
+        // Based on difficulty, pick from the best moves.
         std::uniform_int_distribution<std::size_t> pickBest(0, bestMoves.size() - 1);
         chosen = bestMoves[pickBest(rng)];
     } else {

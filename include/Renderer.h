@@ -77,6 +77,13 @@ public:
      */
     bool isMouseButtonPressed() const;
 
+    /**
+     * @brief Renders the difficulty selection menu.
+     * @param selectedDifficulty The currently selected difficulty (0-2 for Easy, Medium, Hard)
+     * @return The selected difficulty index, or -1 if none selected
+     */
+    int renderDifficultyMenu(int selectedDifficulty);
+
 private:
     static constexpr float CELL_SIZE = 1.0f;      ///< Size of each board cell in 3D units
     static constexpr float PIECE_HEIGHT = 0.3f;   ///< Height of pieces

@@ -75,10 +75,28 @@ int main(int argc, char *argv[]) {
     // Initialize sound manager
     SoundManager soundManager;
 
+    // Show difficulty selection menu
+    AIDifficulty selectedDifficulty = AIDifficulty::Medium;
+    int menuSelection = -1;
+    bool showingMenu = true;
+    
+    while (showingMenu && !renderer.shouldClose()) {
+        menuSelection = renderer.renderDifficultyMenu(static_cast<int>(selectedDifficulty));
+        
+        if (menuSelection >= 0 && menuSelection <= 2) {
+            selectedDifficulty = static_cast<AIDifficulty>(menuSelection);
+            showingMenu = false;
+        }
+    }
+    
+    if (renderer.shouldClose()) {
+        return 0;
+    }
+
     GameState state;
     initBoard(state);
 
-    CheckersAI ai;
+    CheckersAI ai(selectedDifficulty);
     GameResult result = GameResult::Ongoing;
     bool showPopup = false;
 

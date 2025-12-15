@@ -35,20 +35,20 @@ void initBoard(GameState &state) {
 
     const int rowsPerSide = 3;
 
-    // Teal at top, moving "down"
+    // Purple at top, moving "down"
     for (int r = 0; r < rowsPerSide; ++r) {
         for (int c = 0; c < BOARD_SIZE; ++c) {
             if (isDarkSquare(r, c)) {
-                state.board[r][c] = TealMan;
+                state.board[r][c] = PurpleMan;
             }
         }
     }
 
-    // Purple at bottom, moving "up"
+    // Teal at bottom, moving "up"
     for (int r = BOARD_SIZE - rowsPerSide; r < BOARD_SIZE; ++r) {
         for (int c = 0; c < BOARD_SIZE; ++c) {
             if (isDarkSquare(r, c)) {
-                state.board[r][c] = PurpleMan;
+                state.board[r][c] = TealMan;
             }
         }
     }
@@ -85,7 +85,9 @@ bool applyMove(GameState &state, int sr, int sc, int tr, int tc, bool &wasCaptur
     bool isKing = (piece == TealKing || piece == PurpleKing);
 
     // Allowed movement directions in terms of row delta
-    int forwardDir = tealPiece ? 1 : -1;
+    // Teal is at bottom, so it moves "up" (negative row direction, dr = -1)
+    // Purple is at top, so it moves "down" (positive row direction, dr = 1)
+    int forwardDir = tealPiece ? -1 : 1;
     auto isAllowedDir = [&](int deltaRow) {
         if (deltaRow == forwardDir) return true;
         if (isKing && deltaRow == -forwardDir) return true;
@@ -117,9 +119,11 @@ bool applyMove(GameState &state, int sr, int sc, int tr, int tc, bool &wasCaptur
     }
 
     // Handle kinging
-    if (piece == TealMan && tr == BOARD_SIZE - 1) {
+    // Teal is at bottom, so it kings when reaching the top (row 0)
+    if (piece == TealMan && tr == 0) {
         state.board[tr][tc] = TealKing;
-    } else if (piece == PurpleMan && tr == 0) {
+    } else if (piece == PurpleMan && tr == BOARD_SIZE - 1) {
+        // Purple is at top, so it kings when reaching the bottom (row 7)
         state.board[tr][tc] = PurpleKing;
     }
 
@@ -162,7 +166,9 @@ bool hasAnyMoves(const GameState &state, Piece player) {
             if (lookPurple && !isPurplePiece(piece)) continue;
 
             bool tealPiece = isTealPiece(piece);
-            int forwardDir = tealPiece ? 1 : -1;
+            // Teal is at bottom, so it moves "up" (negative row direction, dr = -1)
+            // Purple is at top, so it moves "down" (positive row direction, dr = 1)
+            int forwardDir = tealPiece ? -1 : 1;
             bool isKing = (piece == TealKing || piece == PurpleKing);
 
             for (int dc = -2; dc <= 2; ++dc) {
