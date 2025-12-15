@@ -8,7 +8,7 @@
  * If demo.mp3 exists, it will be used for all sound effects.
  */
 SoundManager::SoundManager()
-    : initialized(false)
+    : initialized(false), demo{}, move{}, capture{}, win{}, lose{}
 {
     // Initialize Raylib audio
     InitAudioDevice();
@@ -26,14 +26,14 @@ SoundManager::SoundManager()
  * @brief Destructor that cleans up all loaded sounds and closes the audio system.
  */
 SoundManager::~SoundManager() {
-    // Unload sounds
-    if (IsSoundReady(demo)) {
+    // Unload sounds (check if frameCount > 0 to see if sound was loaded)
+    if (demo.frameCount > 0) {
         UnloadSound(demo);
     } else {
-        if (IsSoundReady(move))    UnloadSound(move);
-        if (IsSoundReady(capture)) UnloadSound(capture);
-        if (IsSoundReady(win))     UnloadSound(win);
-        if (IsSoundReady(lose))    UnloadSound(lose);
+        if (move.frameCount > 0)    UnloadSound(move);
+        if (capture.frameCount > 0) UnloadSound(capture);
+        if (win.frameCount > 0)     UnloadSound(win);
+        if (lose.frameCount > 0)    UnloadSound(lose);
     }
 
     if (initialized) {
@@ -50,7 +50,7 @@ void SoundManager::loadSounds() {
     // If demo.mp3 exists and loads, use it for all sound effects.
     if (FileExists("assets/demo.mp3")) {
         demo = LoadSound("assets/demo.mp3");
-        if (IsSoundReady(demo)) {
+        if (demo.frameCount > 0) {
             std::cout << "Using demo.mp3 for all sound effects\n";
             return;
         }
@@ -76,10 +76,10 @@ void SoundManager::loadSounds() {
  * @param sound The sound to play
  */
 void SoundManager::playSound(Sound sound) {
-    if (!IsSoundReady(sound)) return;
+    if (sound.frameCount == 0) return;  // Sound not loaded
     
-    // Stop all sounds and play the new one
-    StopSoundMulti();
+    // Stop any currently playing sound and play the new one
+    StopSound(sound);  // Stop this specific sound if playing
     PlaySound(sound);
 }
 
@@ -88,9 +88,9 @@ void SoundManager::playSound(Sound sound) {
  * Stops any currently playing sound before playing the new one.
  */
 void SoundManager::playMove() {
-    if (IsSoundReady(demo)) {
+    if (demo.frameCount > 0) {
         playSound(demo);
-    } else if (IsSoundReady(move)) {
+    } else if (move.frameCount > 0) {
         playSound(move);
     }
 }
@@ -100,9 +100,9 @@ void SoundManager::playMove() {
  * Stops any currently playing sound before playing the new one.
  */
 void SoundManager::playCapture() {
-    if (IsSoundReady(demo)) {
+    if (demo.frameCount > 0) {
         playSound(demo);
-    } else if (IsSoundReady(capture)) {
+    } else if (capture.frameCount > 0) {
         playSound(capture);
     }
 }
@@ -112,9 +112,9 @@ void SoundManager::playCapture() {
  * Stops any currently playing sound before playing the new one.
  */
 void SoundManager::playWin() {
-    if (IsSoundReady(demo)) {
+    if (demo.frameCount > 0) {
         playSound(demo);
-    } else if (IsSoundReady(win)) {
+    } else if (win.frameCount > 0) {
         playSound(win);
     }
 }
@@ -124,9 +124,9 @@ void SoundManager::playWin() {
  * Stops any currently playing sound before playing the new one.
  */
 void SoundManager::playLose() {
-    if (IsSoundReady(demo)) {
+    if (demo.frameCount > 0) {
         playSound(demo);
-    } else if (IsSoundReady(lose)) {
+    } else if (lose.frameCount > 0) {
         playSound(lose);
     }
 }

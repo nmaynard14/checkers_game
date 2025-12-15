@@ -259,7 +259,11 @@ void Renderer::screenToBoard(int mouseX, int mouseY, int &outRow, int &outCol) c
     if (std::abs(ray.direction.y) > 0.001f) {
         float t = -ray.position.y / ray.direction.y;
         if (t > 0) {
-            Vector3 hitPoint = Vector3Add(ray.position, Vector3Scale(ray.direction, t));
+            Vector3 hitPoint = {
+                ray.position.x + ray.direction.x * t,
+                ray.position.y + ray.direction.y * t,
+                ray.position.z + ray.direction.z * t
+            };
             
             // Convert 3D hit point to board coordinates
             int col = static_cast<int>((hitPoint.x / CELL_SIZE) + BOARD_SIZE / 2.0f);
