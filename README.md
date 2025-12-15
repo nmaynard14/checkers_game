@@ -18,17 +18,32 @@ This is a fully-featured checkers game where you play as the Teal player against
 
 ### Prerequisites
 
-- C++17 compatible compiler (g++ recommended)
+- C++17 compatible compiler
 - SDL2 development libraries
 - SDL2_ttf development libraries
 - SDL2_mixer development libraries
 
-On Ubuntu/Debian:
+### Linux
+
+#### Install Dependencies
+
+**Ubuntu/Debian:**
 ```bash
-sudo apt install libsdl2-dev libsdl2-ttf-dev libsdl2-mixer-dev
+sudo apt update
+sudo apt install build-essential libsdl2-dev libsdl2-ttf-dev libsdl2-mixer-dev
 ```
 
-### Compilation
+**Fedora/RHEL:**
+```bash
+sudo dnf install gcc-c++ SDL2-devel SDL2_ttf-devel SDL2_mixer-devel
+```
+
+**Arch Linux:**
+```bash
+sudo pacman -S base-devel sdl2 sdl2_ttf sdl2_mixer
+```
+
+#### Compilation
 
 ```bash
 make
@@ -36,11 +51,118 @@ make
 
 The executable will be created in `bin/checkers_sdl`.
 
-### Running
+#### Running
 
 ```bash
 ./bin/checkers_sdl
 ```
+
+### macOS
+
+#### Install Dependencies
+
+Using Homebrew (recommended):
+```bash
+brew install sdl2 sdl2_ttf sdl2_mixer
+```
+
+#### Compilation
+
+The Makefile should work on macOS, but you may need to adjust the compiler flags. Alternatively, compile manually:
+
+```bash
+g++ -std=c++17 -Wall -Wextra -O2 \
+    -I/opt/homebrew/include/SDL2 -D_REENTRANT \
+    -Iinclude \
+    -c src/main.cpp -o build/main.o
+g++ -std=c++17 -Wall -Wextra -O2 \
+    -I/opt/homebrew/include/SDL2 -D_REENTRANT \
+    -Iinclude \
+    -c src/GameLogic.cpp -o build/GameLogic.o
+g++ -std=c++17 -Wall -Wextra -O2 \
+    -I/opt/homebrew/include/SDL2 -D_REENTRANT \
+    -Iinclude \
+    -c src/CheckersAI.cpp -o build/CheckersAI.o
+g++ -std=c++17 -Wall -Wextra -O2 \
+    -I/opt/homebrew/include/SDL2 -D_REENTRANT \
+    -Iinclude \
+    -c src/SoundManager.cpp -o build/SoundManager.o
+g++ -std=c++17 -Wall -Wextra -O2 \
+    -I/opt/homebrew/include/SDL2 -D_REENTRANT \
+    -Iinclude \
+    -c src/Renderer.cpp -o build/Renderer.o
+g++ -std=c++17 -Wall -Wextra -O2 \
+    -o bin/checkers_sdl \
+    build/main.o build/GameLogic.o build/CheckersAI.o \
+    build/SoundManager.o build/Renderer.o \
+    -L/opt/homebrew/lib -lSDL2 -lSDL2_ttf -lSDL2_mixer
+```
+
+Or use the Makefile after adjusting paths:
+```bash
+make
+```
+
+#### Running
+
+```bash
+./bin/checkers_sdl
+```
+
+### Windows
+
+#### Install Dependencies
+
+**Using vcpkg (recommended):**
+
+1. Install vcpkg: https://github.com/Microsoft/vcpkg
+2. Install SDL2 packages:
+```cmd
+vcpkg install sdl2:x64-windows
+vcpkg install sdl2-ttf:x64-windows
+vcpkg install sdl2-mixer:x64-windows
+```
+
+**Using MSYS2/MinGW:**
+
+```bash
+pacman -S mingw-w64-x86_64-gcc mingw-w64-x86_64-SDL2 \
+          mingw-w64-x86_64-SDL2_ttf mingw-w64-x86_64-SDL2_mixer
+```
+
+#### Compilation
+
+**Using Visual Studio:**
+
+1. Create a new C++ project
+2. Add all source files from `src/` and headers from `include/`
+3. Configure include directories:
+   - `include/`
+   - SDL2 include path (e.g., `C:\vcpkg\installed\x64-windows\include`)
+4. Configure library directories:
+   - SDL2 library path (e.g., `C:\vcpkg\installed\x64-windows\lib`)
+5. Link against: `SDL2.lib`, `SDL2_ttf.lib`, `SDL2_mixer.lib`
+6. Copy SDL2 DLLs to the output directory
+
+**Using MinGW/MSYS2:**
+
+```bash
+g++ -std=c++17 -Wall -Wextra -O2 \
+    -Iinclude -ISDL2_include_path \
+    -c src/main.cpp -o build/main.o
+# Repeat for all .cpp files
+g++ -std=c++17 -Wall -Wextra -O2 \
+    -o bin/checkers_sdl.exe \
+    build/*.o -lSDL2 -lSDL2_ttf -lSDL2_mixer
+```
+
+#### Running
+
+```cmd
+bin\checkers_sdl.exe
+```
+
+**Note:** Ensure SDL2 DLLs are in the same directory as the executable or in your PATH.
 
 ## Project Structure
 
@@ -99,4 +221,8 @@ This project was created using [Cursor](https://cursor.sh), an AI-powered code e
 ## License
 
 This project is provided as-is for educational and personal use.
+
+---
+
+**Note:** This README should be updated whenever significant changes are made to the project structure, build system, dependencies, or features. Please keep the documentation current with the codebase.
 
