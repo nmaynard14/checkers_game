@@ -21,9 +21,12 @@ bool handleClick(GameState &state, Renderer &renderer, bool &wasCapture) {
     int mouseX = (int)mousePos.x;
     int mouseY = (int)mousePos.y;
     
+    // Determine active player for camera positioning
+    bool isTealActive = (state.currentPlayer == TealMan || state.currentPlayer == TealKing);
+    
     // Convert screen coordinates to board coordinates using 3D picking
     int row, col;
-    renderer.screenToBoard(mouseX, mouseY, row, col);
+    renderer.screenToBoard(mouseX, mouseY, row, col, isTealActive);
     if (row == -1 || col == -1) return false;
 
     Piece clicked = state.board[row][col];
@@ -81,6 +84,27 @@ int main(int argc, char *argv[]) {
 
     bool running = true;
     while (running && !renderer.shouldClose()) {
+        // Check if current player has no valid moves (they lose immediately)
+        if (result == GameResult::Ongoing) {
+            int tealCount = 0, purpleCount = 0;
+            countPieces(state, tealCount, purpleCount);
+            
+            // Check if current player has no moves
+            if (state.currentPlayer == TealMan || state.currentPlayer == TealKing) {
+                if (tealCount == 0 || !hasAnyMoves(state, TealMan)) {
+                    result = GameResult::PurpleWin;
+                    soundManager.playLose();
+                    showPopup = true;
+                }
+            } else if (state.currentPlayer == PurpleMan || state.currentPlayer == PurpleKing) {
+                if (purpleCount == 0 || !hasAnyMoves(state, PurpleMan)) {
+                    result = GameResult::TealWin;
+                    soundManager.playWin();
+                    showPopup = true;
+                }
+            }
+        }
+        
         // Handle input
         if (renderer.isMouseButtonPressed()) {
             if (showPopup) {

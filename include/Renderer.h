@@ -61,8 +61,9 @@ public:
      * @param mouseY Screen Y coordinate
      * @param outRow Output parameter for board row (-1 if invalid)
      * @param outCol Output parameter for board column (-1 if invalid)
+     * @param isTealActive Whether Teal is the active player (for camera positioning)
      */
-    void screenToBoard(int mouseX, int mouseY, int &outRow, int &outCol) const;
+    void screenToBoard(int mouseX, int mouseY, int &outRow, int &outCol, bool isTealActive) const;
 
     /**
      * @brief Gets the mouse position.

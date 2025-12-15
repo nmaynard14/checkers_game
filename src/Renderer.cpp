@@ -1,4 +1,5 @@
 #include "Renderer.h"
+#include "rlgl.h"
 
 #include <cmath>
 #include <iostream>
@@ -166,11 +167,18 @@ void Renderer::renderGame(const GameState &state) {
     
     ClearBackground((Color){51, 51, 64, 255});  // Dark blue-grey background
     
+    // Set viewport for 3D rendering (left portion, excluding sidebar)
+    int boardWidth = WINDOW_WIDTH - SIDEBAR_WIDTH;
+    rlViewport(0, 0, boardWidth, WINDOW_HEIGHT);
+    
     // Determine active player and update camera
     bool isTealActive = (state.currentPlayer == TealMan || state.currentPlayer == TealKing);
     updateCamera(isTealActive);
     
-    BeginMode3D(camera);
+    // Create a temporary camera with adjusted aspect ratio for the viewport
+    Camera3D viewportCamera = camera;
+    // Note: Raylib's BeginMode3D automatically uses the current viewport for aspect ratio
+    BeginMode3D(viewportCamera);
     
     // Render board squares
     for (int r = 0; r < BOARD_SIZE; ++r) {
@@ -203,6 +211,9 @@ void Renderer::renderGame(const GameState &state) {
     }
     
     EndMode3D();
+    
+    // Reset viewport to full window for 2D rendering
+    rlViewport(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT);
     
     // Render UI overlay
     renderUIOverlay(tealCount, purpleCount);
@@ -240,22 +251,59 @@ void Renderer::endDrawing() {
  * @param outRow Output parameter for board row (-1 if invalid)
  * @param outCol Output parameter for board column (-1 if invalid)
  */
-void Renderer::screenToBoard(int mouseX, int mouseY, int &outRow, int &outCol) const {
+void Renderer::screenToBoard(int mouseX, int mouseY, int &outRow, int &outCol, bool isTealActive) const {
     outRow = -1;
     outCol = -1;
     
     // Ignore clicks in sidebar
-    if (mouseX >= WINDOW_WIDTH - SIDEBAR_WIDTH) {
+    int boardWidth = WINDOW_WIDTH - SIDEBAR_WIDTH;
+    if (mouseX >= boardWidth) {
         return;
     }
     
-    // Get ray from mouse position
-    Ray ray = GetMouseRay((Vector2){(float)mouseX, (float)mouseY}, camera);
+    // CRITICAL: Update camera to match the rendering state
+    // This ensures the ray calculation uses the same camera position as rendering
+    Camera3D viewportCamera = camera;
+    float angleRad = cameraAngle * M_PI / 180.0f;
+    float cameraY = cameraDistance * std::sin(angleRad);
+    float cameraZDist = cameraDistance * std::cos(angleRad);
+    float cameraZ = isTealActive ? cameraZDist : -cameraZDist;
+    viewportCamera.position = (Vector3){0.0f, cameraY, cameraZ};
+    viewportCamera.target = (Vector3){0.0f, 0.0f, 0.0f};
+    
+    // Set viewport to match 3D rendering viewport
+    rlViewport(0, 0, boardWidth, WINDOW_HEIGHT);
+    
+    // Set up 3D projection to match rendering
+    // This ensures GetMouseRay uses the same projection matrix
+    BeginMode3D(viewportCamera);
+    
+    // ROOT CAUSE ANALYSIS:
+    // GetMouseRay internally uses GetScreenWidth() and GetScreenHeight() which
+    // return the WINDOW dimensions (800x800), not the viewport dimensions (600x800).
+    // This causes the aspect ratio calculation to be wrong, resulting in
+    // the ray being calculated incorrectly.
+    //
+    // SOLUTION: We need to scale the mouse coordinates to account for the
+    // difference between window size and viewport size, OR we need to ensure
+    // GetMouseRay uses the viewport dimensions.
+    //
+    // Since we can't modify GetMouseRay, we'll adjust the mouse coordinates
+    // to compensate. The viewport is boardWidth wide, but GetMouseRay thinks
+    // the screen is WINDOW_WIDTH wide. So we need to scale mouseX.
+    float scaleX = (float)WINDOW_WIDTH / (float)boardWidth;
+    float adjustedMouseX = mouseX * scaleX;
+    
+    // GetMouseRay calculates the ray from mouse coordinates
+    // The adjusted coordinates account for the viewport/window size mismatch
+    Ray ray = GetMouseRay((Vector2){adjustedMouseX, (float)mouseY}, viewportCamera);
+    
+    EndMode3D();
+    
+    // Restore full window viewport
+    rlViewport(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT);
     
     // Check intersection with board plane (y = 0)
-    // Ray: P = O + t*D, where O is origin, D is direction
-    // Plane: y = 0
-    // Solve: O.y + t*D.y = 0 => t = -O.y / D.y
     if (std::abs(ray.direction.y) > 0.001f) {
         float t = -ray.position.y / ray.direction.y;
         if (t > 0) {
@@ -266,8 +314,14 @@ void Renderer::screenToBoard(int mouseX, int mouseY, int &outRow, int &outCol) c
             };
             
             // Convert 3D hit point to board coordinates
-            int col = static_cast<int>((hitPoint.x / CELL_SIZE) + BOARD_SIZE / 2.0f);
-            int row = static_cast<int>((hitPoint.z / CELL_SIZE) + BOARD_SIZE / 2.0f);
+            // Board squares are centered at: x = (col - 3.5) * CELL_SIZE
+            // Inverse: col = (x / CELL_SIZE) + 3.5
+            float colFloat = (hitPoint.x / CELL_SIZE) + (BOARD_SIZE / 2.0f) - 0.5f;
+            float rowFloat = (hitPoint.z / CELL_SIZE) + (BOARD_SIZE / 2.0f) - 0.5f;
+            
+            // Round to nearest integer
+            int col = static_cast<int>(std::round(colFloat));
+            int row = static_cast<int>(std::round(rowFloat));
             
             if (inBounds(row, col)) {
                 outRow = row;
