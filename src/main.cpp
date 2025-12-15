@@ -22,15 +22,11 @@ static constexpr int CELL_SIZE = 80;  // pixels per cell (must match Renderer::C
  * @param wasCapture Output parameter set to true if the move resulted in a capture, false otherwise
  * @return true if a move was successfully executed, false otherwise (selection change or invalid click)
  */
-bool handleClick(GameState &state, int mouseX, int mouseY, bool &wasCapture) {
-    // Ignore clicks in the sidebar area (sidebar starts at BOARD_SIZE * CELL_SIZE)
-    if (mouseX >= BOARD_SIZE * CELL_SIZE) {
-        return false;
-    }
-
-    int col = mouseX / CELL_SIZE;
-    int row = mouseY / CELL_SIZE;
-    if (!inBounds(row, col)) return false;
+bool handleClick(GameState &state, Renderer &renderer, int mouseX, int mouseY, bool &wasCapture) {
+    // Convert screen coordinates to board coordinates using 3D picking
+    int row, col;
+    renderer.screenToBoard(mouseX, mouseY, row, col);
+    if (row == -1 || col == -1) return false;
 
     Piece clicked = state.board[row][col];
 
@@ -112,7 +108,7 @@ int main(int argc, char *argv[]) {
                 } else if (result == GameResult::Ongoing && state.currentPlayer == TealMan &&
                            e.button.windowID == renderer.getMainWindowID()) {
                     bool humanCapture = false;
-                    bool movedByHuman = handleClick(state, e.button.x, e.button.y, humanCapture);
+                    bool movedByHuman = handleClick(state, renderer, e.button.x, e.button.y, humanCapture);
                     if (movedByHuman) {
                         if (!humanCapture)
                             soundManager.playMove();

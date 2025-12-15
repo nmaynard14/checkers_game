@@ -4,7 +4,7 @@ CXX := g++
 CXXFLAGS := -std=c++17 -Wall -Wextra -O2
 
 SDL_CFLAGS := $(shell sdl2-config --cflags)
-SDL_LIBS   := $(shell sdl2-config --libs) -lSDL2_ttf -lSDL2_mixer
+SDL_LIBS   := $(shell sdl2-config --libs) -lSDL2_ttf -lSDL2_mixer -lGL -lGLU
 
 SRC_DIR   := src
 INC_DIR   := include

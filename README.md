@@ -1,6 +1,6 @@
 # Checkers Game
 
-A classic 8x8 checkers game built with C++ and SDL2, featuring an AI opponent, sound effects, and a modern graphical interface.
+A classic 8x8 checkers game built with C++ and SDL2, featuring 3D graphics rendered with OpenGL, an AI opponent, sound effects, and a modern graphical interface.
 
 ## Description
 
@@ -22,6 +22,7 @@ This is a fully-featured checkers game where you play as the Teal player against
 - SDL2 development libraries
 - SDL2_ttf development libraries
 - SDL2_mixer development libraries
+- OpenGL development libraries (libGL, libGLU)
 
 ### Linux
 
@@ -30,17 +31,17 @@ This is a fully-featured checkers game where you play as the Teal player against
 **Ubuntu/Debian:**
 ```bash
 sudo apt update
-sudo apt install build-essential libsdl2-dev libsdl2-ttf-dev libsdl2-mixer-dev
+sudo apt install build-essential libsdl2-dev libsdl2-ttf-dev libsdl2-mixer-dev libgl1-mesa-dev libglu1-mesa-dev
 ```
 
 **Fedora/RHEL:**
 ```bash
-sudo dnf install gcc-c++ SDL2-devel SDL2_ttf-devel SDL2_mixer-devel
+sudo dnf install gcc-c++ SDL2-devel SDL2_ttf-devel SDL2_mixer-devel mesa-libGL-devel mesa-libGLU-devel
 ```
 
 **Arch Linux:**
 ```bash
-sudo pacman -S base-devel sdl2 sdl2_ttf sdl2_mixer
+sudo pacman -S base-devel sdl2 sdl2_ttf sdl2_mixer mesa glu
 ```
 
 #### Compilation
@@ -65,6 +66,7 @@ Using Homebrew (recommended):
 ```bash
 brew install sdl2 sdl2_ttf sdl2_mixer
 ```
+Note: OpenGL is included with macOS by default.
 
 #### Compilation
 
@@ -122,12 +124,14 @@ vcpkg install sdl2:x64-windows
 vcpkg install sdl2-ttf:x64-windows
 vcpkg install sdl2-mixer:x64-windows
 ```
+Note: OpenGL is typically included with Windows SDK or can be obtained via vcpkg.
 
 **Using MSYS2/MinGW:**
 
 ```bash
 pacman -S mingw-w64-x86_64-gcc mingw-w64-x86_64-SDL2 \
-          mingw-w64-x86_64-SDL2_ttf mingw-w64-x86_64-SDL2_mixer
+          mingw-w64-x86_64-SDL2_ttf mingw-w64-x86_64-SDL2_mixer \
+          mingw-w64-x86_64-mesa
 ```
 
 #### Compilation
@@ -202,6 +206,8 @@ Alternatively, place `demo.mp3` in the `assets/` directory to use a single sound
 - **SDL2** - Cross-platform development library for low-level access to audio, keyboard, mouse, joystick, and graphics hardware
 - **SDL2_ttf** - TrueType font rendering library for SDL2
 - **SDL2_mixer** - Multi-channel audio mixer library for SDL2
+- **OpenGL** - 3D graphics rendering API used for rendering the game board and pieces in 3D
+- **GLU** - OpenGL Utility Library for additional 3D rendering functions
 
 ### Sound Effects
 
